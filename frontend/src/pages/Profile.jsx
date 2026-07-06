@@ -40,6 +40,10 @@ export default function Profile() {
     }
   }
 
+  function handleFollow(profile) {
+    console.log('following ',profile.username, 'with id: ', profile.id);
+  }
+
   async function handleDelete(postId) {
     await api.deletePost(postId);
     setProfile((prev) => ({
@@ -74,7 +78,10 @@ export default function Profile() {
             </div>
           )
         ) : (
-          <p>{profile.bio || 'No bio yet.'}</p>
+          <>
+            <p>{profile.bio || 'No bio yet.'}</p>
+            <button type="button" className="btn-sm" onClick={() =>handleFollow(profile)}>Follow</button>
+          </>
         )}
       </header>
 
