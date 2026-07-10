@@ -7,13 +7,14 @@ import PostForm from '../components/PostForm';
 export default function Feed() {
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  async function loadPosts() {
+  async function loadFollowers() {
     try {
-      const data = await api.getPosts();
-      setPosts(data);
+      const data = await api.getFollowers(user.id);
+      setFollowers(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -22,8 +23,30 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    if (followers.length === 0) return;
+
+    async function loadFollowedPosts() {
+      try {
+        const results = await Promise.all(
+          followers.map((id) => api.getPostsById(id))
+        );
+        setPosts(results.flat());
+        console.log(results.flat());
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    loadFollowedPosts();
+  }, [followers]);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    loadFollowers();
+  }, [user]);
 
   async function handleCreate(content) {
     const post = await api.createPost(content);

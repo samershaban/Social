@@ -73,3 +73,4 @@ DATABASE_URL=postgresql://socialapp:socialapp@localhost:5432/socialapp
 | GET | `/api/users/me` | Yes | Get own profile |
 | PUT | `/api/users/me` | Yes | Update bio |
 | GET | `/api/users/:id` | No | Get public profile |
+| GET | `/api/followers` | No | Get followers from a logged in user  |

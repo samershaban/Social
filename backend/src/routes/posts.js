@@ -16,6 +16,17 @@ function formatPost(row) {
   };
 }
 
+async function getPostsById(userId) {
+  const posts = await query(
+    `SELECT p.id, p.content, p.created_at, p.user_id, u.username
+     FROM posts p
+     JOIN users u ON u.id = p.user_id
+     where u.id = $1`,
+     [userId]
+  );
+  return posts.rows.map(formatPost);
+}
+
 router.get('/', async (_req, res) => {
   try {
     const result = await query(
@@ -28,6 +39,20 @@ router.get('/', async (_req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const posts = await getPostsById(req.params.id);
+    if(!posts) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err });
   }
 });
 

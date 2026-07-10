@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const TOKEN_KEY = 'token';
 
 export function getToken() {
@@ -12,31 +14,36 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function request(path, options = {}) {
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
+const client = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});
 
+client.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
 
-  const res = await fetch(`/api${path}`, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    throw new Error(data.error || 'Something went wrong');
+client.interceptors.response.use(
+  (res) => res.data,
+  (err) => {
+    const message = err.response?.data?.error || 'Something went wrong';
+    return Promise.reject(new Error(message));
   }
-
-  return data;
-}
+);
 
 export const api = {
-  register: (body) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
-  login: (body) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
-  getPosts: () => request('/posts'),
-  createPost: (content) => request('/posts', { method: 'POST', body: JSON.stringify({ content }) }),
-  deletePost: (id) => request(`/posts/${id}`, { method: 'DELETE' }),
-  getMyProfile: () => request('/users/me'),
-  getUserProfile: (id) => request(`/users/${id}`),
-  updateBio: (bio) => request('/users/me', { method: 'PUT', body: JSON.stringify({ bio }) }),
+  register: (body) => client.post('/auth/register', body),
+  login: (body) => client.post('/auth/login', body),
+  getPosts: () => client.get('/posts'),
+  getPostsById: (id) => client.get(`/posts/${id}`),
+  createPost: (content) => client.post('/posts', { content }),
+  deletePost: (id) => client.delete(`/posts/${id}`),
+  getMyProfile: () => client.get('/users/me'),
+  getUserProfile: (id) => client.get(`/users/${id}`),
+  updateBio: (bio) => client.put('/users/me', { bio }),
+  getFollowers: (id) => client.get(`/followers/${id}/following`),
 };
