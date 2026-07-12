@@ -14,6 +14,7 @@ async function getUserProfile(userId) {
      GROUP BY u.id`,
     [userId]
   );
+  
 
   const user = userResult.rows[0];
   if (!user) return null;
@@ -43,6 +44,23 @@ async function getUserProfile(userId) {
   };
 }
 
+async function searchUsers(keyword, limit = 20) {
+  const result = await query(
+    `SELECT id, username, bio
+     FROM users
+     WHERE username ILIKE $1
+     ORDER BY username
+     LIMIT $2`,
+    [`%${keyword}%`, limit]
+  );
+
+  return result.rows.map((user) => ({
+    id: user.id,
+    username: user.username,
+    bio: user.bio || '',
+  }));
+}
+
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const profile = await getUserProfile(req.userId);
@@ -70,6 +88,22 @@ router.put('/me', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+router.get('/search', async (req, res) => {
+  const { q, limit } = req.query;
+
+  if (!q?.trim()) {
+    return res.status(400).json({ error: 'Search query is required' });
+  }
+
+  try {
+    const users = await searchUsers(q.trim(), limit ? Number(limit) : 20);
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to search users' });
   }
 });
 

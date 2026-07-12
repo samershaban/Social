@@ -9,6 +9,7 @@ export default function Navbar() {
       <Link to="/" className="navbar-brand">SocialApp</Link>
       <div className="navbar-links">
         <Link to="/">Feed</Link>
+        <Link to="/search">Search</Link>
         {user ? (
           <>
             <Link to="/profile">Profile</Link>

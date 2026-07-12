@@ -5,6 +5,8 @@ import Feed from './pages/Feed';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import Users from './pages/Users';
+
 
 export default function App() {
   return (
@@ -18,6 +20,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/users/:id" element={<Profile />} />
+            <Route path="/search" element={<Users />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -48,4 +48,5 @@ export const api = {
   getFollowers: (id) => client.get(`/followers/${id}/following`),
   follow: (id) => client.put(`/followers/follow/${id}`),
   unfollow: (id) => client.delete(`/followers/follow/${id}`),
+  searchUsers: (q, lmt) => client.get(`/users/search?q=${q}&limit=${lmt}`),
 };
