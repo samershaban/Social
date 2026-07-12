@@ -46,4 +46,6 @@ export const api = {
   getUserProfile: (id) => client.get(`/users/${id}`),
   updateBio: (bio) => client.put('/users/me', { bio }),
   getFollowers: (id) => client.get(`/followers/${id}/following`),
+  follow: (id) => client.put(`/followers/follow/${id}`),
+  unfollow: (id) => client.delete(`/followers/follow/${id}`),
 };

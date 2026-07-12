@@ -11,12 +11,13 @@ export default function Profile() {
   const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followers, setFollowers] = useState([]);
   const [error, setError] = useState('');
 
   const isOwnProfile = !id || (user && Number(id) === user.id);
 
   useEffect(() => {
-    async function load() {
+    async function loadProfile() {
       try {
         const data = isOwnProfile && user ? await api.getMyProfile() : await api.getUserProfile(id);
         setProfile(data);
@@ -27,7 +28,19 @@ export default function Profile() {
         setLoading(false);
       }
     }
-    load();
+    loadProfile();
+    async function loadFollowers() {
+      try {
+        const data = user? await api.getFollowers(user.id): [];
+        setFollowers(data);
+        // console.log(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        // setLoading(false);
+      }
+    }
+    loadFollowers();
   }, [id, user, isOwnProfile]);
 
   async function handleSaveBio() {
@@ -40,8 +53,14 @@ export default function Profile() {
     }
   }
 
-  function handleFollow(profile) {
-    console.log('following ',profile.username, 'with id: ', profile.id);
+  async function handleFollow(profile) {
+    await api.follow(profile.id);
+    setFollowers((prev) => [...prev, profile.id]);
+  }
+
+  async function handleUnFollow(profile) {
+    await api.unfollow(profile.id);
+    setFollowers((prev) => prev.filter((id) => id !== profile.id));
   }
 
   async function handleDelete(postId) {
@@ -77,11 +96,12 @@ export default function Profile() {
               <button type="button" className="btn-sm" onClick={() => setEditing(true)}>Edit bio</button>
             </div>
           )
-        ) : (
-          <>
-            <p>{profile.bio || 'No bio yet.'}</p>
+        ) : (<>
+          {followers && profile && !followers.includes(profile.id)?<>
             <button type="button" className="btn-sm" onClick={() =>handleFollow(profile)}>Follow</button>
-          </>
+          </>: <>
+          <button type="button" className="btn-sm" onClick={() =>handleUnFollow(profile)}>Unfollow</button>
+          </>}</>
         )}
       </header>
 
