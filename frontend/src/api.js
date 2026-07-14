@@ -49,4 +49,7 @@ export const api = {
   follow: (id) => client.put(`/followers/follow/${id}`),
   unfollow: (id) => client.delete(`/followers/follow/${id}`),
   searchUsers: (q, lmt) => client.get(`/users/search?q=${q}&limit=${lmt}`),
+  getConversations: () => client.get('/conversations'),
+  createConversation: (userId) => client.post('/conversations', { userId }),
+  getMessages: (conversationId) => client.get(`/conversations/${conversationId}/messages`),
 };

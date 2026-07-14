@@ -236,3 +236,128 @@ h2 {
   margin-bottom: 0.75rem;
   font-size: 1.125rem;
 }
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-actions p {
+  width: 100%;
+  margin-bottom: 0.25rem;
+  color: #4b5563;
+}
+
+.btn-link-button {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  background: #4f46e5;
+  color: #fff;
+  text-decoration: none;
+}
+
+.btn-link-button:hover {
+  background: #4338ca;
+  text-decoration: none;
+  color: #fff;
+}
+
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 60vh;
+}
+
+.chat-header {
+  margin-bottom: 1rem;
+}
+
+.chat-back {
+  display: inline-block;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.chat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  word-break: break-word;
+}
+
+.chat-bubble-mine {
+  align-self: flex-end;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.chat-bubble-theirs {
+  align-self: flex-start;
+  background: #e5e7eb;
+  color: #1a1a2e;
+}
+
+.chat-sender {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-bottom: 0.15rem;
+}
+
+.chat-compose {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-compose input {
+  flex: 1;
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversation-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: inherit;
+  text-decoration: none;
+}
+
+.conversation-item:hover {
+  text-decoration: none;
+  background: #f9fafb;
+}
+
+.conversation-preview {
+  font-size: 0.875rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

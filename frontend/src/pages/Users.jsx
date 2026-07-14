@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 export default function Feed() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,15 +26,15 @@ export default function Feed() {
 
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    loadUsers();
+    setLoading(false);
   }, [user]);
 
   async function handleSearch(content) {
-    console.log(content);
+    setSearchQuery(content);
+    if (!content || content.length < 2) {
+      setUsers([]);
+      return;
+    }
     const newUsers = await api.searchUsers(content, 10);
     setUsers(newUsers);
   }
@@ -46,8 +47,8 @@ export default function Feed() {
       <h1>Search Users</h1>
       {user && <SearchForm onSubmit={handleSearch} />}
       {error && <p className="error">{error}</p>}
-      {users.length === 0 ? (
-        <p className="empty">No Users with specified search</p>
+      {searchQuery.length >= 2 && users.length === 0 ? (
+        <p className="empty">No users found</p>
       ) : (
         <div className="profile-page">
           {users.map((user, id) => (<header className="profile-header" key={id}>
@@ -56,7 +57,7 @@ export default function Feed() {
               @{user.username}
             </Link>
             </h1>
-            <div>{user.id}</div>
+            <div>{user.bio}</div>
           </header>))}
         </div>
       )}

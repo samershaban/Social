@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import PostCard from '../components/PostCard';
@@ -31,13 +31,10 @@ export default function Profile() {
     loadProfile();
     async function loadFollowers() {
       try {
-        const data = user? await api.getFollowers(user.id): [];
+        const data = user ? await api.getFollowers(user.id) : [];
         setFollowers(data);
-        // console.log(data);
       } catch (err) {
         setError(err.message);
-      } finally {
-        // setLoading(false);
       }
     }
     loadFollowers();
@@ -60,7 +57,7 @@ export default function Profile() {
 
   async function handleUnFollow(profile) {
     await api.unfollow(profile.id);
-    setFollowers((prev) => prev.filter((id) => id !== profile.id));
+    setFollowers((prev) => prev.filter((fid) => fid !== profile.id));
   }
 
   async function handleDelete(postId) {
@@ -96,12 +93,20 @@ export default function Profile() {
               <button type="button" className="btn-sm" onClick={() => setEditing(true)}>Edit bio</button>
             </div>
           )
-        ) : (<>
-          {followers && profile && !followers.includes(profile.id)?<>
-            <button type="button" className="btn-sm" onClick={() =>handleFollow(profile)}>Follow</button>
-          </>: <>
-          <button type="button" className="btn-sm" onClick={() =>handleUnFollow(profile)}>Unfollow</button>
-          </>}</>
+        ) : (
+          <div className="profile-actions">
+            <p>{profile.bio || 'No bio yet.'}</p>
+            {followers.includes(profile.id) ? (
+              <button type="button" className="btn-sm" onClick={() => handleUnFollow(profile)}>Unfollow</button>
+            ) : (
+              <button type="button" className="btn-sm" onClick={() => handleFollow(profile)}>Follow</button>
+            )}
+            {user && (
+              <Link to={`/chat/${profile.id}`} className="btn-sm btn-link-button">
+                Message
+              </Link>
+            )}
+          </div>
         )}
       </header>
 

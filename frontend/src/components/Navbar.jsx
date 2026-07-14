@@ -8,10 +8,11 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/" className="navbar-brand">SocialApp</Link>
       <div className="navbar-links">
-        <Link to="/">Feed</Link>
-        <Link to="/search">Search</Link>
         {user ? (
           <>
+            <Link to="/">Feed</Link>
+            <Link to="/search">Search</Link>
+            <Link to="/chat">Chat</Link>
             <Link to="/profile">Profile</Link>
             <span className="navbar-user">@{user.username}</span>
             <button type="button" className="btn-link" onClick={logout}>Logout</button>
