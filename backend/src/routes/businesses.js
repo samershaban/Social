@@ -6,11 +6,10 @@ const router = Router();
 const reviewsRouter = Router();
 
 const BUSINESS_SELECT = `
-  SELECT b.id, b.name, b.category, b.description, b.address, b.created_at, b.user_id, u.username,
-         AVG(r.rating)::float AS avg_rating, COUNT(r.id)::int AS review_count
+  SELECT b.id, b.name, b.category, b.description, b.address, b.created_at, b.user_id,
+         b.review_count, b.rating_total, u.username
   FROM businesses b
   JOIN users u ON u.id = b.user_id
-  LEFT JOIN reviews r ON r.business_id = b.id
 `;
 
 function formatBusiness(row) {
@@ -22,8 +21,8 @@ function formatBusiness(row) {
     address: row.address || '',
     createdAt: row.created_at,
     owner: { id: row.user_id, username: row.username },
-    avgRating: row.avg_rating !== null ? Number(row.avg_rating) : null,
-    reviewCount: Number(row.review_count),
+    avgRating: row.review_count > 0 ? row.rating_total / row.review_count : null,
+    reviewCount: row.review_count,
   };
 }
 
@@ -39,10 +38,7 @@ function formatReview(row) {
 }
 
 async function getBusiness(id) {
-  const result = await query(
-    `${BUSINESS_SELECT} WHERE b.id = $1 GROUP BY b.id, u.username`,
-    [id]
-  );
+  const result = await query(`${BUSINESS_SELECT} WHERE b.id = $1`, [id]);
   return result.rows[0] ?? null;
 }
 
@@ -57,7 +53,7 @@ async function hasReviewed(userId, businessId) {
 router.get('/', async (_req, res) => {
   try {
     const result = await query(
-      `${BUSINESS_SELECT} GROUP BY b.id, u.username ORDER BY b.created_at DESC`
+      `${BUSINESS_SELECT} ORDER BY b.created_at DESC`
     );
     res.json(result.rows.map(formatBusiness));
   } catch (err) {
@@ -77,7 +73,6 @@ router.get('/search', async (req, res) => {
     const result = await query(
       `${BUSINESS_SELECT}
        WHERE b.name ILIKE $1 OR b.category ILIKE $1 OR b.description ILIKE $1
-       GROUP BY b.id, u.username
        ORDER BY b.created_at DESC`,
       [`%${q.trim()}%`]
     );
@@ -112,12 +107,12 @@ router.post('/', requireAuth, async (req, res) => {
     const result = await query(
       `INSERT INTO businesses (user_id, name, category, description, address)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, category, description, address, created_at, user_id`,
+       RETURNING id, name, category, description, address, created_at, user_id, review_count, rating_total`,
       [req.userId, name.trim(), category?.trim() || '', description?.trim() || '', address?.trim() || '']
     );
 
     const userResult = await query('SELECT username FROM users WHERE id = $1', [req.userId]);
-    const row = { ...result.rows[0], username: userResult.rows[0].username, avg_rating: null, review_count: 0 };
+    const row = { ...result.rows[0], username: userResult.rows[0].username };
     res.status(201).json(formatBusiness(row));
   } catch (err) {
     console.error(err);
@@ -227,6 +222,11 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
       [req.userId, businessId, rating, content.trim()]
     );
 
+    await query(
+      `UPDATE businesses SET review_count = review_count + 1, rating_total = rating_total + $1 WHERE id = $2`,
+      [rating, businessId]
+    );
+
     const userResult = await query('SELECT username FROM users WHERE id = $1', [req.userId]);
     const row = { ...result.rows[0], username: userResult.rows[0].username };
     res.status(201).json(formatReview(row));
@@ -251,7 +251,7 @@ reviewsRouter.put('/:id', requireAuth, async (req, res) => {
   }
 
   try {
-    const result = await query('SELECT user_id FROM reviews WHERE id = $1', [req.params.id]);
+    const result = await query('SELECT user_id, rating, business_id FROM reviews WHERE id = $1', [req.params.id]);
     const review = result.rows[0];
     if (!review) {
       return res.status(404).json({ error: 'Review not found' });
@@ -266,6 +266,14 @@ reviewsRouter.put('/:id', requireAuth, async (req, res) => {
       [rating, content.trim(), req.params.id]
     );
 
+    const ratingDelta = rating - review.rating;
+    if (ratingDelta !== 0) {
+      await query(
+        `UPDATE businesses SET rating_total = rating_total + $1 WHERE id = $2`,
+        [ratingDelta, review.business_id]
+      );
+    }
+
     const userResult = await query('SELECT username FROM users WHERE id = $1', [req.userId]);
     const row = { ...updateResult.rows[0], username: userResult.rows[0].username };
     res.json(formatReview(row));
@@ -277,7 +285,7 @@ reviewsRouter.put('/:id', requireAuth, async (req, res) => {
 
 reviewsRouter.delete('/:id', requireAuth, async (req, res) => {
   try {
-    const result = await query('SELECT user_id FROM reviews WHERE id = $1', [req.params.id]);
+    const result = await query('SELECT user_id, rating, business_id FROM reviews WHERE id = $1', [req.params.id]);
     const review = result.rows[0];
     if (!review) {
       return res.status(404).json({ error: 'Review not found' });
@@ -287,6 +295,10 @@ reviewsRouter.delete('/:id', requireAuth, async (req, res) => {
     }
 
     await query('DELETE FROM reviews WHERE id = $1', [req.params.id]);
+    await query(
+      `UPDATE businesses SET review_count = review_count - 1, rating_total = rating_total - $1 WHERE id = $2`,
+      [review.rating, review.business_id]
+    );
     res.json({ message: 'Review deleted' });
   } catch (err) {
     console.error(err);

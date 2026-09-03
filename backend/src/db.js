@@ -67,9 +67,14 @@ export async function initDb() {
       category VARCHAR(80) DEFAULT '',
       description TEXT DEFAULT '',
       address VARCHAR(255) DEFAULT '',
+      review_count INT NOT NULL DEFAULT 0,
+      rating_total INT NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+
+  await query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS review_count INT NOT NULL DEFAULT 0`);
+  await query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS rating_total INT NOT NULL DEFAULT 0`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS reviews (
@@ -81,5 +86,17 @@ export async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (user_id, business_id)
     )
+  `);
+
+  await query(`
+    UPDATE businesses b
+    SET review_count = sub.count, rating_total = sub.total
+    FROM (
+      SELECT business_id, COUNT(*)::int AS count, COALESCE(SUM(rating), 0)::int AS total
+      FROM reviews
+      GROUP BY business_id
+    ) sub
+    WHERE b.id = sub.business_id
+      AND (b.review_count <> sub.count OR b.rating_total <> sub.total)
   `);
 }
