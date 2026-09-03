@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function SearchForm({ onSubmit }) {
+export default function SearchForm({ onSubmit, placeholder = 'Search Users' }) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,9 +37,9 @@ export default function SearchForm({ onSubmit }) {
       <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search Users"
+        placeholder={placeholder}
         rows={1}
-        maxLength={20}
+        maxLength={50}
       />
       {error && <p className="error">{error}</p>}
       {loading && query.length>0 && <p className="loading">Searching...</p>}

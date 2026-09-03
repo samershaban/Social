@@ -8,6 +8,9 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
 import Chat from './pages/Chat';
+import Businesses from './pages/Businesses';
+import PostBusiness from './pages/PostBusiness';
+import BusinessDetail from './pages/BusinessDetail';
 
 export default function App() {
   return (
@@ -23,6 +26,9 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/users/:id" element={<Profile />} />
               <Route path="/search" element={<Users />} />
+              <Route path="/businesses" element={<Businesses />} />
+              <Route path="/businesses/new" element={<PostBusiness />} />
+              <Route path="/businesses/:id" element={<BusinessDetail />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/chat/:userId" element={<Chat />} />
             </Routes>

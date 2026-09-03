@@ -9,6 +9,7 @@ import postsRoutes from './routes/posts.js';
 import usersRoutes from './routes/users.js';
 import followersRoutes from './routes/followers.js';
 import conversationsRoutes from './routes/conversations.js';
+import businessesRoutes, { reviewsRouter } from './routes/businesses.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -24,6 +25,8 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/followers', followersRoutes);
 app.use('/api/conversations', conversationsRoutes);
+app.use('/api/businesses', businessesRoutes);
+app.use('/api/reviews', reviewsRouter);
 
 async function start() {
   try {

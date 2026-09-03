@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { query } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import Redis from 'ioredis';
 
 const router = Router();
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 function formatPost(row) {
   return {
@@ -16,7 +18,17 @@ function formatPost(row) {
   };
 }
 
-async function getPostsById(userId) {
+async function getPostsByUserId(userId) {
+  const cachedPosts = await redis.get(`posts:${userId}`);
+  if (cachedPosts) {
+    // console.log('Returning cached posts', cachedPosts);
+    // console.log('Cached posts for user:', userId, cachedPosts);
+    console.log('Cache contains posts for user:', userId);
+    return JSON.parse(cachedPosts);
+  } else {
+    console.log('Cache empty, no posts for user:', userId);
+  }
+
   const posts = await query(
     `SELECT p.id, p.content, p.created_at, p.user_id, u.username
      FROM posts p
@@ -24,6 +36,9 @@ async function getPostsById(userId) {
      where u.id = $1`,
      [userId]
   );
+  await redis.set(`posts:${userId}`, JSON.stringify(posts.rows.map(formatPost)), 'EX', 30);
+
+  // console.log('Cached posts for user:', userId, JSON.stringify(posts.rows.map(formatPost)));
   return posts.rows.map(formatPost);
 }
 
@@ -44,7 +59,7 @@ router.get('/', async (_req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const posts = await getPostsById(req.params.id);
+    const posts = await getPostsByUserId(req.params.id);
     if(!posts) {
       return res.status(404).json({ error: 'User not found' });
     }

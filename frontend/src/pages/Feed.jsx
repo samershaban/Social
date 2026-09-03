@@ -38,6 +38,7 @@ export default function Feed() {
     }
 
     loadFollowedPosts();
+    console.log('Followers use effect');
   }, [followers]);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function Feed() {
       return;
     }
     loadFollowers();
+    console.log('User use effect');
   }, [user]);
 
   async function handleCreate(content) {

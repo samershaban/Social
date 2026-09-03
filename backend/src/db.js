@@ -58,4 +58,28 @@ export async function initDb() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS businesses (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name VARCHAR(120) NOT NULL,
+      category VARCHAR(80) DEFAULT '',
+      description TEXT DEFAULT '',
+      address VARCHAR(255) DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      business_id INT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+      rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE (user_id, business_id)
+    )
+  `);
 }
