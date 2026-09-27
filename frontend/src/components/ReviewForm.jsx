@@ -3,6 +3,7 @@ import StarRating from './StarRating';
 
 export default function ReviewForm({ onSubmit, initialValues, submitLabel = 'Submit Review', onCancel }) {
   const [rating, setRating] = useState(initialValues?.rating || 0);
+  const [title, setTitle] = useState(initialValues?.title || '');
   const [content, setContent] = useState(initialValues?.content || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,9 +15,10 @@ export default function ReviewForm({ onSubmit, initialValues, submitLabel = 'Sub
     setLoading(true);
     setError('');
     try {
-      await onSubmit({ rating, content });
+      await onSubmit({ rating, title, content });
       if (!initialValues) {
         setRating(0);
+        setTitle('');
         setContent('');
       }
     } catch (err) {
@@ -29,6 +31,12 @@ export default function ReviewForm({ onSubmit, initialValues, submitLabel = 'Sub
   return (
     <form className="review-form" onSubmit={handleSubmit}>
       <StarRating value={rating} onChange={setRating} />
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title (optional)"
+        maxLength={120}
+      />
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

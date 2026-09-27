@@ -4,7 +4,11 @@ import { requireAuth } from '../middleware/auth.js';
 import Redis from 'ioredis';
 
 const router = Router();
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false,
+});
+redis.on('error', (err) => console.error('Redis connection error:', err.message));
 
 function formatPost(row) {
   return {
@@ -19,14 +23,15 @@ function formatPost(row) {
 }
 
 async function getPostsByUserId(userId) {
-  const cachedPosts = await redis.get(`posts:${userId}`);
-  if (cachedPosts) {
-    // console.log('Returning cached posts', cachedPosts);
-    // console.log('Cached posts for user:', userId, cachedPosts);
-    console.log('Cache contains posts for user:', userId);
-    return JSON.parse(cachedPosts);
-  } else {
+  try {
+    const cachedPosts = await redis.get(`posts:${userId}`);
+    if (cachedPosts) {
+      console.log('Cache contains posts for user:', userId);
+      return JSON.parse(cachedPosts);
+    }
     console.log('Cache empty, no posts for user:', userId);
+  } catch (err) {
+    console.error('Redis read failed, falling back to database:', err.message);
   }
 
   const posts = await query(
@@ -36,10 +41,15 @@ async function getPostsByUserId(userId) {
      where u.id = $1`,
      [userId]
   );
-  await redis.set(`posts:${userId}`, JSON.stringify(posts.rows.map(formatPost)), 'EX', 30);
+  const formatted = posts.rows.map(formatPost);
 
-  // console.log('Cached posts for user:', userId, JSON.stringify(posts.rows.map(formatPost)));
-  return posts.rows.map(formatPost);
+  try {
+    await redis.set(`posts:${userId}`, JSON.stringify(formatted), 'EX', 30);
+  } catch (err) {
+    console.error('Redis write failed, skipping cache:', err.message);
+  }
+
+  return formatted;
 }
 
 router.get('/', async (_req, res) => {

@@ -24,7 +24,7 @@ export default function Feed() {
 
   useEffect(() => {
     if (followers.length === 0) return;
-
+    
     async function loadFollowedPosts() {
       try {
         const results = await Promise.all(
@@ -68,7 +68,7 @@ export default function Feed() {
       {user && <PostForm onSubmit={handleCreate} />}
       {error && <p className="error">{error}</p>}
       {posts.length === 0 ? (
-        <p className="empty">No posts yet. Be the first to post!</p>
+        <p className="empty">No posts</p>
       ) : (
         <div className="post-list">
           {posts.map((post) => (
