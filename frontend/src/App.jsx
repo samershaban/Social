@@ -11,6 +11,9 @@ import Chat from './pages/Chat';
 import Businesses from './pages/Businesses';
 import PostBusiness from './pages/PostBusiness';
 import BusinessDetail from './pages/BusinessDetail';
+import Events from './pages/Events';
+import PostEvent from './pages/PostEvent';
+import EventDetail from './pages/EventDetail';
 
 export default function App() {
   return (
@@ -29,6 +32,9 @@ export default function App() {
               <Route path="/businesses" element={<Businesses />} />
               <Route path="/businesses/new" element={<PostBusiness />} />
               <Route path="/businesses/:id" element={<BusinessDetail />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/new" element={<PostEvent />} />
+              <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/chat/:userId" element={<Chat />} />
             </Routes>

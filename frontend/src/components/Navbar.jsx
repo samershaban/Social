@@ -13,6 +13,7 @@ export default function Navbar() {
             <Link to="/">Feed</Link>
             <Link to="/search">Search</Link>
             <Link to="/businesses">Businesses</Link>
+            <Link to="/events">Events</Link>
             <Link to="/chat">Chat</Link>
             <Link to="/profile">Profile</Link>
             <span className="navbar-user">@{user.username}</span>
@@ -21,6 +22,7 @@ export default function Navbar() {
         ) : (
           <>
             <Link to="/businesses">Businesses</Link>
+            <Link to="/events">Events</Link>
             <Link to="/login">Login</Link>
             <Link to="/register">Register</Link>
           </>

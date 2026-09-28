@@ -102,4 +102,47 @@ export async function initDb() {
     WHERE b.id = sub.business_id
       AND (b.review_count <> sub.count OR b.rating_total <> sub.total)
   `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS venues (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(120) NOT NULL,
+      city VARCHAR(120) DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS performers (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(120) NOT NULL,
+      genre VARCHAR(80) DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS events (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      venue_id INT NOT NULL REFERENCES venues(id) ON DELETE RESTRICT,
+      performer_id INT NOT NULL REFERENCES performers(id) ON DELETE RESTRICT,
+      title VARCHAR(160) NOT NULL,
+      description TEXT DEFAULT '',
+      event_date TIMESTAMPTZ NOT NULL,
+      search_vector tsvector,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS search_vector tsvector`);
+
+  // First indexes in this codebase. The two unique expression indexes are required by the
+  // ON CONFLICT (lower(name)) find-or-create in routes/events.js, not just an optimization.
+  await query(`CREATE UNIQUE INDEX IF NOT EXISTS venues_name_lower_idx ON venues (lower(name))`);
+  await query(`CREATE UNIQUE INDEX IF NOT EXISTS performers_name_lower_idx ON performers (lower(name))`);
+  await query(`CREATE INDEX IF NOT EXISTS events_event_date_idx ON events (event_date)`);
+  await query(`CREATE INDEX IF NOT EXISTS events_venue_id_idx ON events (venue_id)`);
+  await query(`CREATE INDEX IF NOT EXISTS events_performer_id_idx ON events (performer_id)`);
+  await query(`CREATE INDEX IF NOT EXISTS events_search_idx ON events USING GIN (search_vector)`);
 }

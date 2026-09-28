@@ -363,7 +363,8 @@ h2 {
 }
 
 .business-form,
-.review-form {
+.review-form,
+.event-form {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -379,18 +380,21 @@ h2 {
   gap: 0.5rem;
 }
 
-.businesses-actions {
+.businesses-actions,
+.events-actions {
   margin-bottom: 1.5rem;
 }
 
 .business-list,
-.review-list {
+.review-list,
+.event-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.business-card {
+.business-card,
+.event-card {
   display: block;
   padding: 1rem;
   background: #fff;
@@ -400,16 +404,19 @@ h2 {
   text-decoration: none;
 }
 
-.business-card:hover {
+.business-card:hover,
+.event-card:hover {
   text-decoration: none;
   background: #f9fafb;
 }
 
-.business-card h3 {
+.business-card h3,
+.event-card h3 {
   margin-bottom: 0.25rem;
 }
 
-.business-category {
+.business-category,
+.event-genre {
   display: inline-block;
   font-size: 0.75rem;
   color: #4f46e5;
@@ -428,12 +435,14 @@ h2 {
   color: #6b7280;
 }
 
-.business-address {
+.business-address,
+.event-venue {
   font-size: 0.875rem;
   color: #6b7280;
 }
 
-.business-detail-header {
+.business-detail-header,
+.event-detail-header {
   margin-bottom: 1.5rem;
   padding: 1rem;
   background: #fff;
@@ -441,11 +450,13 @@ h2 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.business-detail-header h1 {
+.business-detail-header h1,
+.event-detail-header h1 {
   margin-bottom: 0.25rem;
 }
 
-.business-detail-meta {
+.business-detail-meta,
+.event-detail-meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -454,14 +465,16 @@ h2 {
   margin: 0.5rem 0;
 }
 
-.business-detail-description {
+.business-detail-description,
+.event-detail-description {
   margin: 0.75rem 0;
   white-space: pre-wrap;
   color: #4b5563;
 }
 
 .business-detail-actions,
-.review-actions {
+.review-actions,
+.event-detail-actions {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.75rem;
@@ -532,4 +545,36 @@ h2 {
 .review-content {
   margin-bottom: 0.75rem;
   white-space: pre-wrap;
+}
+
+.event-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.event-filters input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.event-filters .event-search {
+  flex-basis: 100%;
+}
+
+.event-filters-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-basis: 100%;
+}
+
+.event-date {
+  font-weight: 500;
+  color: #4f46e5;
+  margin-bottom: 0.25rem;
 }

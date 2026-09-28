@@ -62,4 +62,20 @@ export const api = {
   createReview: (businessId, body) => client.post(`/businesses/${businessId}/reviews`, body),
   updateReview: (id, body) => client.put(`/reviews/${id}`, body),
   deleteReview: (id) => client.delete(`/reviews/${id}`),
+  // Empty filters are dropped so `?date=&venue=` never reaches the server as blank values
+  // that would read as real filters.
+  getEvents: (filters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    const search = params.toString();
+    return client.get(search ? `/events?${search}` : '/events');
+  },
+  getEvent: (id) => client.get(`/events/${id}`),
+  createEvent: (body) => client.post('/events', body),
+  updateEvent: (id, body) => client.put(`/events/${id}`, body),
+  deleteEvent: (id) => client.delete(`/events/${id}`),
+  getVenues: () => client.get('/venues'),
+  getPerformers: () => client.get('/performers'),
 };
