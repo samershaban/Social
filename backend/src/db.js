@@ -82,11 +82,14 @@ export async function initDb() {
       user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       business_id INT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
       rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+      title VARCHAR(120) DEFAULT '',
       content TEXT NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (user_id, business_id)
     )
   `);
+
+  await query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS title VARCHAR(120) DEFAULT ''`);
 
   await query(`
     UPDATE businesses b

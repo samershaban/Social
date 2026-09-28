@@ -525,6 +525,10 @@ h2 {
   margin-left: auto;
 }
 
+.review-title {
+  margin-bottom: 0.25rem;
+}
+
 .review-content {
   margin-bottom: 0.75rem;
   white-space: pre-wrap;

@@ -12,7 +12,7 @@ export default function ReviewCard({ review, onUpdate, onDelete }) {
   if (editing) {
     return (
       <ReviewForm
-        initialValues={{ rating: review.rating, content: review.content }}
+        initialValues={{ rating: review.rating, title: review.title, content: review.content }}
         submitLabel="Save"
         onCancel={() => setEditing(false)}
         onSubmit={async (body) => {
@@ -34,6 +34,7 @@ export default function ReviewCard({ review, onUpdate, onDelete }) {
           {new Date(review.createdAt).toLocaleString()}
         </time>
       </header>
+      {review.title && <h4 className="review-title">{review.title}</h4>}
       <p className="review-content">{review.content}</p>
       {isOwner && (
         <div className="review-actions">

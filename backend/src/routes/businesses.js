@@ -30,6 +30,7 @@ function formatReview(row) {
   return {
     id: row.id,
     rating: row.rating,
+    title: row.title || '',
     content: row.content,
     createdAt: row.created_at,
     author: { id: row.user_id, username: row.username },
@@ -177,7 +178,7 @@ router.get('/:id/reviews', async (req, res) => {
     }
 
     const result = await query(
-      `SELECT rv.id, rv.rating, rv.content, rv.created_at, rv.user_id, rv.business_id, u.username
+      `SELECT rv.id, rv.rating, rv.title, rv.content, rv.created_at, rv.user_id, rv.business_id, u.username
        FROM reviews rv
        JOIN users u ON u.id = rv.user_id
        WHERE rv.business_id = $1
@@ -194,7 +195,7 @@ router.get('/:id/reviews', async (req, res) => {
 router.post('/:id/reviews', requireAuth, async (req, res) => {
   const businessId = req.params.id;
   const rating = Number(req.body.rating);
-  const { content } = req.body;
+  const { title, content } = req.body;
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
@@ -216,15 +217,18 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
     }
 
     const result = await query(
-      `INSERT INTO reviews (user_id, business_id, rating, content)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, rating, content, created_at, user_id, business_id`,
-      [req.userId, businessId, rating, content.trim()]
-    );
-
-    await query(
-      `UPDATE businesses SET review_count = review_count + 1, rating_total = rating_total + $1 WHERE id = $2`,
-      [rating, businessId]
+      `WITH inserted AS (
+         INSERT INTO reviews (user_id, business_id, rating, title, content)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, rating, title, content, created_at, user_id, business_id
+       ), business_update AS (
+         UPDATE businesses
+         SET review_count = review_count + 1, rating_total = rating_total + (SELECT rating FROM inserted)
+         WHERE id = (SELECT business_id FROM inserted)
+         RETURNING id
+       )
+       SELECT * FROM inserted`,
+      [req.userId, businessId, rating, title?.trim() || '', content.trim()]
     );
 
     const userResult = await query('SELECT username FROM users WHERE id = $1', [req.userId]);
@@ -241,7 +245,7 @@ router.post('/:id/reviews', requireAuth, async (req, res) => {
 
 reviewsRouter.put('/:id', requireAuth, async (req, res) => {
   const rating = Number(req.body.rating);
-  const { content } = req.body;
+  const { title, content } = req.body;
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
@@ -260,19 +264,18 @@ reviewsRouter.put('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'You can only edit your own reviews' });
     }
 
-    const updateResult = await query(
-      `UPDATE reviews SET rating = $1, content = $2 WHERE id = $3
-       RETURNING id, rating, content, created_at, user_id, business_id`,
-      [rating, content.trim(), req.params.id]
-    );
-
     const ratingDelta = rating - review.rating;
-    if (ratingDelta !== 0) {
-      await query(
-        `UPDATE businesses SET rating_total = rating_total + $1 WHERE id = $2`,
-        [ratingDelta, review.business_id]
-      );
-    }
+    const updateResult = await query(
+      `WITH updated_review AS (
+         UPDATE reviews SET rating = $1, title = $2, content = $3 WHERE id = $4
+         RETURNING id, rating, title, content, created_at, user_id, business_id
+       ), business_update AS (
+         UPDATE businesses SET rating_total = rating_total + $5 WHERE id = $6
+         RETURNING id
+       )
+       SELECT * FROM updated_review`,
+      [rating, title?.trim() || '', content.trim(), req.params.id, ratingDelta, review.business_id]
+    );
 
     const userResult = await query('SELECT username FROM users WHERE id = $1', [req.userId]);
     const row = { ...updateResult.rows[0], username: userResult.rows[0].username };
@@ -294,10 +297,13 @@ reviewsRouter.delete('/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'You can only delete your own reviews' });
     }
 
-    await query('DELETE FROM reviews WHERE id = $1', [req.params.id]);
     await query(
-      `UPDATE businesses SET review_count = review_count - 1, rating_total = rating_total - $1 WHERE id = $2`,
-      [review.rating, review.business_id]
+      `WITH deleted AS (
+         DELETE FROM reviews WHERE id = $1
+         RETURNING id
+       )
+       UPDATE businesses SET review_count = review_count - 1, rating_total = rating_total - $2 WHERE id = $3`,
+      [req.params.id, review.rating, review.business_id]
     );
     res.json({ message: 'Review deleted' });
   } catch (err) {
