@@ -132,7 +132,8 @@ button:hover:not(:disabled) {
 }
 
 input,
-textarea {
+textarea,
+select {
   font: inherit;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
@@ -141,7 +142,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: 2px solid #4f46e5;
   outline-offset: -1px;
 }
@@ -577,4 +579,49 @@ h2 {
   font-weight: 500;
   color: #4f46e5;
   margin-bottom: 0.25rem;
+}
+
+.event-tickets {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.event-tickets h2 {
+  margin-bottom: 0.25rem;
+}
+
+.event-tickets-summary {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.ticket-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ticket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.ticket-seat {
+  font-weight: 500;
+}
+
+.ticket-reserve {
+  display: flex;
+  gap: 0.5rem;
 }

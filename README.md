@@ -10,6 +10,7 @@ A basic social media app with a React + Vite frontend and an Express/Node backen
 - Delete your own posts
 - Browse events and search them by keyword, date, venue or performer
 - Post events you organize, then edit or delete your own
+- Reserve numbered seats for an event, up to a per-person limit, and release them again
 
 ## Project Structure
 
@@ -83,6 +84,9 @@ DATABASE_URL=postgresql://socialapp:socialapp@localhost:5432/socialapp
 | DELETE | `/api/events/:id` | Yes | Delete own event |
 | GET | `/api/venues` | No | List venues |
 | GET | `/api/performers` | No | List performers |
+| GET | `/api/events/:id/tickets` | Yes | Your own seats for an event |
+| POST | `/api/events/:id/tickets` | Yes | Reserve `quantity` seats |
+| DELETE | `/api/tickets/:id` | Yes | Release one of your seats |
 
 ### Event search
 
@@ -93,6 +97,25 @@ given, only upcoming events are returned.
 
 Event times are stored and displayed as a UTC-pinned wall clock: the time an organizer enters is
 the time every viewer sees, and the time `?date=` matches, with no timezone shifting.
+
+### Tickets
+
+Seats are **pre-generated inventory**. Creating an event with a capacity of N inserts N `tickets`
+rows numbered 1..N in the same statement as the event itself, each with `user_id NULL` meaning
+free. `UNIQUE (event_id, seat_number)` makes the seat number unique within its event.
+
+Reserving claims the lowest-numbered free seats with `FOR UPDATE SKIP LOCKED`, which is what makes
+concurrent reservations safe without a transaction: two simultaneous requests are handed disjoint
+seats, and a request that cannot be filled completely reserves nothing rather than a partial batch.
+Releasing frees the seat rather than deleting the row, so an event keeps its capacity.
+
+`events.capacity` and `events.tickets_reserved` are denormalized counters over those rows (the same
+pattern as `review_count`/`rating_total`), so listing events needs no join. `initDb()` recomputes
+them on boot, which also repairs the drift caused by `tickets.user_id` being `ON DELETE SET NULL`:
+deleting a user frees their seats without touching the counters.
+
+Editing an event's capacity adds or removes seats, but **shrinking below a reserved seat number is
+rejected** with a 409 rather than cancelling somebody's ticket.
 
 Venues and performers are reference data, created implicitly when an event first names one and
 matched case-insensitively thereafter. They are intentionally read-only over HTTP: there is no

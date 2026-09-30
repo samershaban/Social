@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildEventFilters, dayBoundsUtc, parseEventDate } from './events.js';
+import { buildEventFilters, dayBoundsUtc, parseEventDate, readEventBody } from './events.js';
 
 const LIMIT = 50;
 
@@ -149,5 +149,53 @@ describe('parseEventDate', () => {
   it('rejects non-string input', () => {
     expect(parseEventDate(null)).toBeNull();
     expect(parseEventDate(new Date())).toBeNull();
+  });
+});
+
+describe('readEventBody ticket fields', () => {
+  const valid = {
+    title: 'Gala',
+    eventDate: '2027-03-01T20:00',
+    venueName: 'Royal Albert Hall',
+    performerName: 'Orchestra',
+  };
+
+  it('defaults to no tickets and a per-user cap of 4', () => {
+    const { values, error } = readEventBody(valid);
+    expect(error).toBeUndefined();
+    expect(values.capacity).toBe(0);
+    expect(values.maxPerUser).toBe(4);
+  });
+
+  it('accepts numeric strings from form inputs', () => {
+    const { values } = readEventBody({ ...valid, capacity: '50', maxPerUser: '2' });
+    expect(values.capacity).toBe(50);
+    expect(values.maxPerUser).toBe(2);
+  });
+
+  it('treats a cleared input as the default rather than as invalid', () => {
+    const { values, error } = readEventBody({ ...valid, capacity: '', maxPerUser: '' });
+    expect(error).toBeUndefined();
+    expect(values.capacity).toBe(0);
+    expect(values.maxPerUser).toBe(4);
+  });
+
+  it.each([-1, 10001, 2.5, 'abc'])('rejects capacity %o', (capacity) => {
+    expect(readEventBody({ ...valid, capacity }).error).toMatch(/Capacity/);
+  });
+
+  it('accepts capacity at the boundaries', () => {
+    expect(readEventBody({ ...valid, capacity: 0 }).values.capacity).toBe(0);
+    expect(readEventBody({ ...valid, capacity: 10000 }).values.capacity).toBe(10000);
+  });
+
+  it.each([0, -3, 1.5, 'abc'])('rejects maxPerUser %o', (maxPerUser) => {
+    expect(readEventBody({ ...valid, maxPerUser }).error).toMatch(/per user/i);
+  });
+
+  // Validation order matters: a bad date should be reported even when capacity is also wrong,
+  // and a missing title should win over both.
+  it('reports the missing title before any ticket problem', () => {
+    expect(readEventBody({ ...valid, title: '', capacity: -1 }).error).toMatch(/title is required/);
   });
 });

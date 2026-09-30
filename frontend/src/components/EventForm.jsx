@@ -10,6 +10,12 @@ export default function EventForm({ onSubmit, initialValues, submitLabel = 'Post
   const [performerName, setPerformerName] = useState(initialValues?.performer?.name || '');
   const [performerGenre, setPerformerGenre] = useState(initialValues?.performer?.genre || '');
   const [description, setDescription] = useState(initialValues?.description || '');
+  const [capacity, setCapacity] = useState(
+    initialValues?.tickets ? String(initialValues.tickets.capacity) : ''
+  );
+  const [maxPerUser, setMaxPerUser] = useState(
+    initialValues?.tickets ? String(initialValues.tickets.maxPerUser) : ''
+  );
   const [venues, setVenues] = useState([]);
   const [performers, setPerformers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,6 +50,8 @@ export default function EventForm({ onSubmit, initialValues, submitLabel = 'Post
         performerName,
         performerGenre,
         description,
+        capacity,
+        maxPerUser,
       });
       if (!initialValues) {
         setTitle('');
@@ -53,6 +61,8 @@ export default function EventForm({ onSubmit, initialValues, submitLabel = 'Post
         setPerformerName('');
         setPerformerGenre('');
         setDescription('');
+        setCapacity('');
+        setMaxPerUser('');
       }
     } catch (err) {
       setError(err.message);
@@ -110,6 +120,23 @@ export default function EventForm({ onSubmit, initialValues, submitLabel = 'Post
         onChange={(e) => setPerformerGenre(e.target.value)}
         placeholder="Genre (optional)"
         maxLength={80}
+      />
+      <input
+        type="number"
+        value={capacity}
+        onChange={(e) => setCapacity(e.target.value)}
+        placeholder="Total tickets (0 for none)"
+        aria-label="Total tickets"
+        min={0}
+        max={10000}
+      />
+      <input
+        type="number"
+        value={maxPerUser}
+        onChange={(e) => setMaxPerUser(e.target.value)}
+        placeholder="Max tickets per person (default 4)"
+        aria-label="Max tickets per person"
+        min={1}
       />
       <textarea
         value={description}

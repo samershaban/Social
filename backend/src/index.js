@@ -10,7 +10,7 @@ import usersRoutes from './routes/users.js';
 import followersRoutes from './routes/followers.js';
 import conversationsRoutes from './routes/conversations.js';
 import businessesRoutes, { reviewsRouter } from './routes/businesses.js';
-import eventsRoutes, { venuesRouter, performersRouter } from './routes/events.js';
+import eventsRoutes, { venuesRouter, performersRouter, ticketsRouter } from './routes/events.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -31,6 +31,7 @@ app.use('/api/reviews', reviewsRouter);
 app.use('/api/events', eventsRoutes);
 app.use('/api/venues', venuesRouter);
 app.use('/api/performers', performersRouter);
+app.use('/api/tickets', ticketsRouter);
 
 async function start() {
   try {

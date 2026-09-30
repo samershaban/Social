@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import EventForm from '../components/EventForm';
+import EventTickets from '../components/EventTickets';
 import { formatEventDate } from '../eventDate';
 
 export default function EventDetail() {
@@ -79,6 +80,8 @@ export default function EventDetail() {
           </>
         )}
       </header>
+
+      {!editing && <EventTickets event={event} onEventChange={setEvent} />}
     </div>
   );
 }

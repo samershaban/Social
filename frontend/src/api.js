@@ -78,4 +78,7 @@ export const api = {
   deleteEvent: (id) => client.delete(`/events/${id}`),
   getVenues: () => client.get('/venues'),
   getPerformers: () => client.get('/performers'),
+  getMyTickets: (eventId) => client.get(`/events/${eventId}/tickets`),
+  reserveTickets: (eventId, quantity) => client.post(`/events/${eventId}/tickets`, { quantity }),
+  releaseTicket: (ticketId) => client.delete(`/tickets/${ticketId}`),
 };

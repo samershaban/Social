@@ -11,6 +11,13 @@ export default function EventCard({ event }) {
         {event.performer.name} · {event.venue.name}
         {event.venue.city && `, ${event.venue.city}`}
       </p>
+      {event.tickets.capacity > 0 && (
+        <p className="event-tickets-summary">
+          {event.tickets.available > 0
+            ? `${event.tickets.available} of ${event.tickets.capacity} tickets left`
+            : 'Sold out'}
+        </p>
+      )}
     </Link>
   );
 }
